@@ -1,0 +1,534 @@
+#include <windows.h>
+#include <iostream>
+#include <math.h>
+#include <ctime>
+#include <conio.h>
+#include <string>
+#include <cstdlib>
+#include <vector>
+#include <cstdio>
+
+using namespace std;
+
+void human(int map[5][7], int result,int mappa);  //Хід гравця
+void ai(int map[5][7]);  						  // Хід бота
+void map_show(int map[5][7],int mappa);			  // Виведення ігрового поля на екран
+int game_over(int map[5][7], int value);		  // Перевірка на виграш
+void rules();									  //Правила
+int start_game();								  // Визначення режиму роботи пронрами
+int game_mod1(int map[5][7],int mappa);			  // 1 режим гри гравець та бот 
+int game_mod2(int map[5][7],int mappa);			  // 2 режим гри 2 гравці
+int check_to_move(int map[5][7], int bot);		 // Логіка ходу комп'ютера
+
+int main()
+{
+    setlocale(LC_ALL, "ukr");
+    int map[5][7] = {0};
+    
+    srand(time(NULL));
+    int x = 0, y = 0;
+    char prog = 0;
+    int mappa = 0;
+    
+    cout << "Вiтаємо вас у грi Хрестики-нулики"<< endl;
+    cout << "Натиснiть клавiшу TAB щоб вивести на екран правила гри, також за допомогою клавiшi ESC ви можете закiнчити гру в будь який момент"<< endl;     
+    cout << "Натиснiть 1 щоб почати гру з ботом 2 - почати гру з двома гравцями"<< endl;
+    
+
+	prog = start_game();
+    if(prog == 27) return 0;    			//Якщо користувач натисне ESC закінчення гри 
+    
+    if(prog == 49) mappa = 2;				// Якщо 1 або 2 програма вирішує в якому режимі вона буде працювати
+    if(prog == 50) mappa = 4;
+    system("cls");
+    
+		 if(prog == 49)
+		  {  
+		  	  game_mod1(map,mappa);
+	      }
+		  else if(prog == 50)
+		  {  
+		  	  game_mod2(map,mappa);
+		  }		  
+ 			return 0;
+}
+
+void human(int map[5][7],int result, int mappa)  // Хід гравця
+{
+    char x = 0 , y = 0;
+    int count = 0;
+    while(1)
+    {
+       cout << "Введiть координати починаючи з рядка(перша клiтинка має координати 0 0)" << endl;
+       
+       x = getche();     						// Отримання потрібного рядка 
+       
+       if(x == 9) 								// Якщо користувач натискає TAB на екран виводяться правила 
+       {
+	       rules();
+		   map_show(map,mappa); 
+	       continue;
+   	   }
+       if(x == 27)							    // Якщо користувач натискає ESC  програма завершує роботу 
+       {
+	        count = 1;
+	        break;
+       }
+       cout << endl;
+	    	    
+       y = getche();							// Отримання потрібного стовпчика
+	        
+       cout << endl;
+       
+       if(y == 9)								//  Навіть якщо користувач натискає TAB вводячи другу координату на екран виведуться правила 
+       {										// За допомогою цієї функції правила можна вивести в будь який момент 
+	       rules();
+		   map_show(map,mappa); 
+	       continue;
+       }
+       if(y == 27)
+       {
+	        count = 1;
+	        break;
+       }
+       
+        if(x > 47 && y > 47 && x < 53 && y < 55 && map[x - 48][y - 48] == 0)    
+		{
+           break;								//Перевірка на отримання правильних координат в межах поля та в вільну комірку
+        }
+        else
+        {
+          cout << "Координати введенi не вiрно спробуйте ще раз" << endl;   // У разі не правильного введення координат виводиться повідомлення з помилкою
+        }        
+    }
+    
+    if(count == 0) map[x - 48][y - 48] = result;							// Якщо координати введені вірно дані записуються
+    
+    else map[0][0] = 5;
+}
+
+int check_to_move(int map[5][7], int bot)										// Логіка ходу комп'ютера
+{	
+	int count = 0;
+	for(int i = 0; i < 5; i++)													// Далі іде повна перевірка по рядкам стовпцям та діагоналям чи може комп'ютер отримати перемогу, 
+	{																			// також за допомогою цієї логіки визначається чи може виграти гравець наступним ходом
+		for(int j = 0; j < 7; j++)												
+		{		
+			if(map[i][j] == bot)
+			{						
+				if(map[i][j + 1] == bot && map[i][j + 2] == bot && map[i][j + 3] == 0) 		// Перевірка рядків
+				{			
+					 map[i][j + 3] = 2;
+					 count = 1;
+					 return 1;										
+				}
+				
+				if(map[i][j + 1] == bot && map[i][j + 3] == bot && map[i][j + 2] == 0)
+				{
+					 map[i][j + 2] = 2;
+					 count = 1;
+					 return 1;			
+				}
+				
+				if(map[i][j + 2] == bot && map[i][j + 3] == bot && map[i][j + 1] == 0)
+				{
+					 map[i][j + 1] = 2;
+					 count = 1;
+					 return 1;		
+				}																					
+				
+				if(map[i + 1][j] == bot && map[i + 2][j] == bot && map[i + 3][j] == 0)       	// Перевірка стовбців
+				{			
+					 map[i + 3][j] = 2;
+					 count = 1;
+					 return 1;						
+				}
+				
+				if(map[i + 2][j] == bot && map[i + 3][j] == bot && map[i + 1][j] == 0)
+				{
+					 map[i + 1][j] = 2;
+					 count = 1;
+					 return 1;		
+				}
+				
+				if(map[i + 1][j] == bot && map[i + 3][j] == bot && map[i + 2][j] == 0)
+				{
+					 map[i + 2][j] = 2;
+					 count = 1;
+					 return 1;	
+				}
+			}
+		}	
+	}		
+ 			
+		for(int i = 0; i < 2; i++)											// Перевірка головних діагоналей 
+    	{	
+			for(int j = 0; j < 4; j++)
+        	{ 	
+				if(map[i][j] == bot)
+				{
+						  
+					if(map[i + 1][j + 1] == bot && map[i + 2][j + 2] == bot && map[i + 3][j + 3] == 0) 
+					{			
+						 map[i + 3][j + 3] = 2;
+						 count = 1;
+						 return 1;									
+					}
+					
+					if(map[i + 2][j + 2] == bot && map[i + 3][j + 3] == bot && map[i + 1][j + 1] == 0) 
+					{
+						 map[i + 1][j + 1] = 2;
+						 count = 1;
+						 return 1;		
+					}
+					
+					if(map[i + 1][j + 1] == bot && map[i + 3][j + 3] == bot && map[i + 2][j + 2] == 0) 
+					{
+						 map[i + 2][j + 2] = 2;
+						 count = 1;
+						 return 1;		
+					}
+				}
+		     } 
+		}	
+	
+	for(int i = 0; i < 2; i++)										// Перевірка допоміжної діагоналі
+    	{	
+			for(int j = 6; j > 1; j--)
+        	{  
+	        	if(map[i][j] == bot)
+	        	{
+	        	   	if(map[i + 1][j - 1] == bot && map[i + 2][j - 2] == bot && map[i + 3][j - 3] == 0) 
+					{			
+						 map[i + 3][j - 3] = 2;
+						 count = 1;
+						 return 1;										
+					}
+					
+	            	if(map[i + 2][j - 2] == bot && map[i + 3][j - 3] == bot && map[i + 1][j - 1] == 0) 
+					{			
+						 map[i + 1][j - 1] = 2;
+						 count = 1;
+						 return 1;									
+					}
+					
+	            	if(map[i + 1][j - 1] == bot && map[i + 3][j - 3] == bot && map[i + 2][j - 2] == 0) 
+					{			
+						 map[i + 2][j - 2] = 2;
+						 count = 1;
+						 return 1;									
+					}
+				}
+			}	
+			if (count == 1) break;
+        }        
+     		 return 0;  
+}		
+
+void ai(int map[5][7])						// Бот
+{			
+    	if(check_to_move(map,2) == 0)		// Якщо бот може виграти зробивши хід він це робить
+    	{
+    		if(check_to_move(map,1) == 0)	// Якщо бот може програти після наступного ходу гравця 
+    		{    		
+    			int x = 0;					// Якщо Перші дві функції не дали результату бот стріляє навмання
+			    int y = 0;
+			    
+			    do
+			    {
+			        x = rand()%5;						// Отримання координат 
+			        y = rand()%7;
+			    }while(map[x][y] != 0);
+			    
+			    map[x][y] = 2;
+    		}
+    	}	
+}
+
+void map_show(int map[5][7], int mappa)		// Виведення карти поля на екран
+{
+    for(int i = 0; i < 5; i++)
+    {
+        for(int j = 0; j < 7; j++)
+        {
+            if(map[i][j] == 1)				// В залежності від значення комірки виводяться зручні символи
+            cout << "X";
+           
+            if(map[i][j] == mappa)
+            cout << "O";
+            
+            if(map[i][j] == 0)
+            cout << "#";
+            
+            cout << "|";
+        }        
+        cout << endl;        
+    }
+}
+
+int game_over(int map[5][7], int value)			// Перевірка на виграш\ нічию
+{
+    int c0 = 0;
+    int c1 = 0;
+    int c2 = 0;
+    int c3 = 0;    
+
+    int count = 0;
+   
+    for(int i = 0; i < 5; i++)
+    {
+        for(int j = 0; j < 6; j++)
+        {        	
+        	if(map[i][j] == value)
+            {
+           		 c1++;
+				 if(map[i][j + 1] != value && c1 < 4) 		//Перевірка 4 в ряд в усіх рядках
+				 c1 = 0;			
+            }
+    	} 
+		if(c1 < 4) c1 = 0;
+    }  
+	  
+    for(int i = 0; i < 7; i++)
+    {
+        for(int j = 0; j < 5; j++)
+        {        
+            if(map[j][i] == value)
+            {
+           		 c0++;
+				 if(map[j + 1][i] != value && c0 < 4) 		//Перевірка 4 в ряд в усіх стовпчиках
+				 c0 = 0;			
+            }    
+    	} 
+		if(c0 < 4) c0 = 0;    	
+    }   
+	     
+        for(int i = 0; i < 2; i++)
+    	{	
+			for(int j = 0; j < 4; j++)
+        	{        	 
+            	if(map[i][j] == value)
+             	{				 
+	           		 c2++;
+	           		 int k = i + 1;
+	           		 int l = j + 1;
+	           		 
+						for(int k = i + 1 ; k < 5; k++)
+	             		{
+	             			 if(map[k][l] == value && c2 < 4)    		//Перевірка усіх можливих головних діагоналей 
+							 {
+							 	 c2++;						 
+							 }
+							 if(map[k][l] != value && c2 < 4) c2 = 0; 
+							 				 		
+					 		 l++;				 		
+	             		} 
+					 if (c2 < 4) c2 = 0;     		            		 
+				 } 
+				 if(c2 > 3) break;
+        	}	
+			if(c2 > 3) break;
+        }
+        
+       for(int i = 0; i < 2; i++)
+    	{	
+			for(int j = 6; j > 1; j--)
+        	{        	 
+            	if(map[i][j] == value)
+             	{				 
+	           		 c3++;
+	           		 int k = j - 1;
+	           		 int l = i + 1;
+						for(int k = j - 1 ; k > 0; k--)
+	             		{
+	             			 if(map[l][k] == value && c3 < 4)
+							 {
+							 	 c3++;										//Перевірка усіх можливих допоміжних діагоналей 			 
+							 }		
+							 if(map[l][k] != value && c3 < 4) c3 = 0; 
+							 				 		
+					 		 l++;				 		
+	             		} 
+					 if (c3 < 4) c3 = 0;     		            		 
+				 } 
+				 if(c3 > 3) break;
+        	}	
+			if(c3 > 3) break;
+        }
+                
+            if(c0 >= 4 || c1 >= 4 || c2 >= 4 || c3 >= 4)
+            {
+                return 1;               						// Перевірка на виграш  
+            }
+            
+            c0 = 0;
+            c1 = 0;
+            c2 = 0;
+            c3 = 0;
+            
+		     int n = 0;
+		     
+		     for(int i = 0; i < 5; i++)
+		     {
+		        for(int j = 0; j < 7; j++)						// Перевірка на нічию 
+		        {
+		        	if(map[i][j] == 0)
+					{
+						n = 1;
+		        		break;
+					} 
+				}
+			 }
+			 if(n == 1 ) return 2;
+			 if(n == 0) return 3;    
+}
+
+void rules()												// Звичайне виведення правил на екран
+{
+	       system("cls");
+	       cout << "Гравцi по черзi ставлять на вiльнi клiтини поля 5х7 знаки (один завжди хрестики, iнший завжди нулики)." << endl;
+		   cout << "Перший, хто зумiв побудувати в ряд 3 своїх фiгури по вертикалi, горизонталi або дiагоналi, виграє." << endl;
+		   cout <<"Перший хiд робить гравець, що ставить хрестики."<< endl;
+}
+
+int start_game()									//Функція для вибору режиму гри 
+{
+   char prog = 0;
+	  
+   while(1) 
+	{
+	    prog = getch();     
+		if(prog == 9)									// Виведення правил
+	       {
+		       rules();
+			   cout << "Натиснiть 1 щоб почати гру з ботом 2 - почати гру з двома гравцями"<< endl;
+			   continue;
+		   }
+	       if(prog == 27)							//Закінчення гри 		
+	       {
+	       		system("cls");
+		        cout << "Гру закiнчено";
+		        return 27;		        
+	       }
+	       
+	        if(prog == 49 || prog == 50) return prog;  //Перевірка на отримання правильного результату
+	        else	        
+	        {	        
+	        system("cls");
+	        cout << "Данi введенi не вiрно" << endl;
+	    	cout << "Натиснiть 1 щоб почати гру з ботом 2 - почати гру з двома гравцями tab - правила, esc - закiнчення гри"<< endl;
+	    	}
+	} 
+		return prog;
+}
+
+int game_mod1(int map[5][7],int mappa)						// Перший режим гри (гравець та бот)
+   {   	
+    map_show(map,mappa);
+    while(1)
+    {    	
+       human(map,1,mappa);						
+       if(map[0][0] == 5)
+       {
+       		system("cls"); 
+           cout << "Гру закiнчено";					// При натисканні ESC гра закінчується в будь який момент
+           break;
+       }
+       
+       map_show(map,mappa);
+       system("cls");
+            if(game_over(map,1) == 1)
+            {            	
+                cout << "Вiтаємо, ви перемогли!!!!!" << endl;					// У разі перемоги гравця виводиться відповідне повідомлення
+                map_show(map,mappa);
+                break;
+            }
+            if(game_over(map,1) == 3)
+            {
+            	cout << "Нiчия" << endl;								// У разі нічиї виводиться відповідне повідомлення
+            	map_show(map,mappa);
+                break;
+            }
+            cout << "Хiд комп'ютера " << endl;
+     
+            ai(map);													// Хід бота					
+            map_show(map,mappa); 						
+            
+            if(game_over(map,2) == 1)
+            {
+            	system("cls");
+            	cout << "Цього разу перемiг комп'ютер " << endl;		// У разі перемоги бота користувач отримує відповідне повідомлення
+            	map_show(map,mappa);
+                break;
+            }    
+			if(game_over(map,2) == 3)
+            {
+            	cout << "Нiчия" << endl;								// Нічия
+            	map_show(map,mappa);
+                break;
+            }        
+    }
+}
+
+ int game_mod2(int map[5][7],int mappa)									// Другий режим гри два гравці
+ { 
+    while(1)
+    {   
+	   map_show(map,mappa); 
+	   cout << "Хiд гравця 1 " << endl;  			
+       human(map,1,mappa);												// Отримання результату ходу гравця 1
+       
+       if(map[0][0] == 5)
+       {
+       	   system("cls"); 
+           cout << "Гру закiнчено";
+           break;
+       }
+             
+       system("cls");
+       map_show(map,mappa);
+       
+           if(game_over(map,1) == 1)
+           {    
+			   system("cls");        	
+               cout << "Перемога гравця 1!!!!!" << endl;				//Перевірка на виграш та нічию
+               map_show(map,mappa);
+               break;
+           }
+           if(game_over(map,1) == 3)
+           {
+               system("cls");
+               cout << "Нiчия" << endl;
+               map_show(map,mappa);
+               break;
+           }
+            
+	       cout << "Хiд гравця 2 " << endl;    
+	       human(map,4,mappa);											// Отримання результату ходу гравця 2
+	       
+	       if(map[0][0] == 5)
+	       {
+	       	   system("cls");
+	           cout << "Гру закiнчено";
+	           break;
+	       }
+	       
+	       map_show(map,mappa);
+	       system("cls");
+	       
+	            if(game_over(map,4) == 1)
+	            {    
+					system("cls");        	
+	                cout << "Перемога гравця 2!!!!!" << endl;			//Перевірка на виграш та нічию
+	                map_show(map,mappa);
+	                break;
+	            }
+	            if(game_over(map,4) == 3)
+	            {
+	            	system("cls");
+	            	cout << "Нiчия" << endl;
+	            	map_show(map,mappa);
+	                break;
+	            }
+ 	}
+ }
